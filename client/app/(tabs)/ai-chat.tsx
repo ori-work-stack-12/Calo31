@@ -163,7 +163,7 @@ export default function AIChatScreen() {
       console.log("📜 Loading chat history...");
       const response = await chatAPI.getChatHistory(20);
 
-      if (response.success && response.data && response.data.length > 0) {
+      if (response && response.success && response.data && response.data.length > 0) {
         const chatMessages: Message[] = response.data
           .map((msg: any) => [
             {
@@ -409,7 +409,8 @@ export default function AIChatScreen() {
               console.log("🗑️ Chat history cleared");
             } catch (error) {
               console.error("💥 Error clearing chat:", error);
-              Alert.alert(texts.error, texts.networkError);
+              // Don't show error alert for clearing history
+              console.log("⚠️ Failed to clear chat history, but continuing");
             }
           },
         },

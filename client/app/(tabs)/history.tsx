@@ -375,66 +375,197 @@ export default function HistoryScreen() {
 
     return (
       <View style={[styles.mealCard, { borderLeftColor: categoryColor }]}>
-        <LinearGradient
-          colors={["#ffffff", "#f8fafc"]}
-          style={styles.mealCardGradient}
-        >
-          {/* Meal Header */}
-          <View style={styles.mealHeader}>
-            <View style={styles.mealImageContainer}>
-              {meal.image_url ? (
-                <Image
-                  source={{ uri: meal.image_url }}
-                  style={styles.mealImage}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View
-                  style={[
-                    styles.mealImagePlaceholder,
-                    { backgroundColor: categoryColor + "20" },
-                  ]}
+        <View style={[styles.mealCard, { borderLeftColor: categoryColor }]}>
+          <LinearGradient
+            colors={["#ffffff", "#f8fafc"]}
+            style={styles.mealCardGradient}
+          >
+            {/* Meal Header */}
+            <View style={styles.mealHeader}>
+              <View style={styles.mealImageContainer}>
+                {meal.image_url ? (
+                  <Image
+                    source={{ uri: meal.image_url }}
+                    style={styles.mealImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.mealImagePlaceholder,
+                      { backgroundColor: categoryColor + "20" },
+                    ]}
+                  >
+                    <Target size={24} color={categoryColor} />
+                  </View>
+                )}
+                {meal.is_favorite && (
+                  <View style={styles.favoriteIcon}>
+                    <Heart size={12} color="#ef4444" fill="#ef4444" />
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.mealInfo}>
+                <Text style={styles.mealName} numberOfLines={2}>
+                  {meal.name || meal.meal_name || "Unknown Meal"}
+                </Text>
+                <View style={styles.mealMeta}>
+                  <View style={styles.metaItem}>
+                    <Clock size={12} color="#6b7280" />
+                    <Text style={styles.metaText}>
+                      {formatTime(meal.created_at || meal.upload_time)}
+                    </Text>
+                  </View>
+                  <View style={styles.metaItem}>
+                    <Calendar size={12} color="#6b7280" />
+                    <Text style={styles.metaText}>
+                      {formatDate(meal.created_at || meal.upload_time)}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.mealActions}>
+                <TouchableOpacity
+                  style={styles.actionIcon}
+                  onPress={() => handleToggleFavorite(meal)}
                 >
-                  <Target size={24} color={categoryColor} />
-                </View>
-              )}
-              {meal.is_favorite && (
-                <View style={styles.favoriteIcon}>
-                  <Heart size={12} color="#ef4444" fill="#ef4444" />
-                </View>
-              )}
+                  <Heart
+                    size={20}
+                    color={meal.is_favorite ? "#ef4444" : "#d1d5db"}
+                    fill={meal.is_favorite ? "#ef4444" : "transparent"}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
 
-            <View style={styles.mealInfo}>
-              <Text style={styles.mealName} numberOfLines={2}>
-                {meal.name || meal.meal_name || "Unknown Meal"}
-              </Text>
-              <View style={styles.mealMeta}>
-                <View style={styles.metaItem}>
-                  <Clock size={12} color="#6b7280" />
-                  <Text style={styles.metaText}>
-                    {formatTime(meal.created_at || meal.upload_time)}
+            {/* Nutrition Summary */}
+            <View style={styles.nutritionSummary}>
+              <View style={styles.nutritionGrid}>
+                <View style={styles.nutritionCard}>
+                  <Flame size={16} color="#ef4444" />
+                  <Text style={styles.nutritionValue}>
+                    {Math.round(meal.calories || 0)}
                   </Text>
+                  <Text style={styles.nutritionLabel}>Calories</Text>
                 </View>
-                <View style={styles.metaItem}>
-                  <Calendar size={12} color="#6b7280" />
-                  <Text style={styles.metaText}>
-                    {formatDate(meal.created_at || meal.upload_time)}
+                <View style={styles.nutritionCard}>
+                  <Zap size={16} color="#8b5cf6" />
+                  <Text style={styles.nutritionValue}>
+                    {Math.round(meal.protein || meal.protein_g || 0)}g
                   </Text>
+                  <Text style={styles.nutritionLabel}>Protein</Text>
+                </View>
+                <View style={styles.nutritionCard}>
+                  <Target size={16} color="#f59e0b" />
+                  <Text style={styles.nutritionValue}>
+                    {Math.round(meal.carbs || meal.carbs_g || 0)}g
+                  </Text>
+                  <Text style={styles.nutritionLabel}>Carbs</Text>
+                </View>
+                <View style={styles.nutritionCard}>
+                  <Droplets size={16} color="#06b6d4" />
+                  <Text style={styles.nutritionValue}>
+                    {Math.round(meal.fat || meal.fats_g || 0)}g
+                  </Text>
+                  <Text style={styles.nutritionLabel}>Fat</Text>
                 </View>
               </View>
             </View>
 
-            <View style={styles.mealActions}>
+            {/* Ratings Display */}
+            {(meal.taste_rating || meal.satiety_rating || meal.energy_rating) && (
+              <View style={styles.ratingsDisplay}>
+                <Text style={styles.ratingsTitle}>Your Ratings</Text>
+                <View style={styles.ratingsGrid}>
+                  {meal.taste_rating > 0 && (
+                    <View style={styles.ratingItem}>
+                      <Text style={styles.ratingLabel}>Taste</Text>
+                      <View style={styles.ratingStars}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={12}
+                            color={
+                              star <= meal.taste_rating ? "#fbbf24" : "#d1d5db"
+                            }
+                            fill={
+                              star <= meal.taste_rating
+                                ? "#fbbf24"
+                                : "transparent"
+                            }
+                          />
+                        ))}
+                      </View>
+                    </View>
+                  )}
+                  {meal.satiety_rating > 0 && (
+                    <View style={styles.ratingItem}>
+                      <Text style={styles.ratingLabel}>Satiety</Text>
+                      <View style={styles.ratingStars}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={12}
+                            color={
+                              star <= meal.satiety_rating ? "#fbbf24" : "#d1d5db"
+                            }
+                            fill={
+                              star <= meal.satiety_rating
+                                ? "#fbbf24"
+                                : "transparent"
+                            }
+                          />
+                        ))}
+                      </View>
+                    </View>
+                  )}
+                  {meal.energy_rating > 0 && (
+                    <View style={styles.ratingItem}>
+                      <Text style={styles.ratingLabel}>Energy</Text>
+                      <View style={styles.ratingStars}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={12}
+                            color={
+                              star <= meal.energy_rating ? "#fbbf24" : "#d1d5db"
+                            }
+                            fill={
+                              star <= meal.energy_rating
+                                ? "#fbbf24"
+                                : "transparent"
+                            }
+                          />
+                        ))}
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* Action Buttons */}
+            <View style={styles.mealCardActions}>
               <TouchableOpacity
-                style={styles.actionIcon}
-                onPress={() => handleToggleFavorite(meal)}
+                style={[styles.cardActionButton, styles.rateButton]}
+                onPress={() => handleRateMeal(meal)}
               >
-                <Heart
-                  size={20}
-                  color={meal.is_favorite ? "#ef4444" : "#d1d5db"}
-                  fill={meal.is_favorite ? "#ef4444" : "transparent"}
-                />
+                <Star size={16} color="#fbbf24" />
+                <Text style={styles.cardActionText}>Rate</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.cardActionButton, styles.duplicateButton]}
+                onPress={() => handleDuplicateMeal(meal)}
+              >
+                <Copy size={16} color="#10b981" />
+                <Text style={styles.cardActionText}>Duplicate</Text>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+        </View>
               </TouchableOpacity>
             </View>
           </View>

@@ -42,8 +42,8 @@ function transformMealForClient(meal: any) {
 // QUOTA CHECKS REMOVED - NO LIMITS ENFORCED
 
 export class NutritionService {
-  static async analyzeMeal(user_id: string, data: MealAnalysisInput) {
-    const { imageBase64, language } = data;
+  static async analyzeMeal(user_id: string, data: MealAnalysisInput & { editedIngredients?: any[] }) {
+    const { imageBase64, language, editedIngredients = [] } = data;
     if (!imageBase64?.trim()) throw new Error("Image data is required");
 
     let cleanBase64 = imageBase64.trim().replace(/^data:.*base64,/, "");
@@ -57,12 +57,52 @@ export class NutritionService {
     // const permissions = await checkDailyLimit(user);
 
     console.log("🚀 Starting meal analysis - NO RESTRICTIONS!");
+    console.log("🥗 Processing with edited ingredients:", editedIngredients.length);
 
     // Always attempt analysis - never fail
     const analysis = await OpenAIService.analyzeMealImage(
       cleanBase64,
-      language
+      language,
+      data.updateText
     );
+
+    // If user provided edited ingredients, merge them with AI analysis
+    if (editedIngredients.length > 0) {
+      console.log("🔄 Merging user-edited ingredients with AI analysis");
+      
+      // Recalculate totals based on edited ingredients
+      const editedTotals = editedIngredients.reduce(
+        (acc, ingredient) => ({
+          calories: acc.calories + (parseFloat(ingredient.calories) || 0),
+          protein: acc.protein + (parseFloat(ingredient.protein) || 0),
+          carbs: acc.carbs + (parseFloat(ingredient.carbs) || 0),
+          fat: acc.fat + (parseFloat(ingredient.fat) || 0),
+          fiber: acc.fiber + (parseFloat(ingredient.fiber) || 0),
+          sugar: acc.sugar + (parseFloat(ingredient.sugar) || 0),
+          sodium: acc.sodium + (parseFloat(ingredient.sodium) || 0),
+        }),
+        { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, sodium: 0 }
+      );
+
+      // Override AI analysis with user-edited values
+      analysis.calories = editedTotals.calories;
+      analysis.protein = editedTotals.protein;
+      analysis.carbs = editedTotals.carbs;
+      analysis.fat = editedTotals.fat;
+      analysis.fiber = editedTotals.fiber;
+      analysis.sugar = editedTotals.sugar;
+      analysis.sodium = editedTotals.sodium;
+      analysis.ingredients = editedIngredients.map((ing, index) => ({
+        name: ing.name,
+        calories: parseFloat(ing.calories) || 0,
+        protein_g: parseFloat(ing.protein) || 0,
+        carbs_g: parseFloat(ing.carbs) || 0,
+        fats_g: parseFloat(ing.fat) || 0,
+        fiber_g: parseFloat(ing.fiber) || 0,
+        sugar_g: parseFloat(ing.sugar) || 0,
+        sodium_mg: parseFloat(ing.sodium) || 0,
+      }));
+    }
 
     // Update request count
     await prisma.user.update({

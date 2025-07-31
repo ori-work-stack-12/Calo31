@@ -8,6 +8,7 @@ export const mealAnalysisSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format")
     .optional(),
   updateText: z.string().optional(), // For meal updates
+  editedIngredients: z.array(z.any()).default([]), // For user-edited ingredients
 });
 
 export const mealUpdateSchema = z.object({

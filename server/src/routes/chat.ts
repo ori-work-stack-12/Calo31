@@ -75,6 +75,76 @@ router.post(
   }
 );
 
+router.get(
+  "/history",
+  authenticateToken,
+  async (req: AuthRequest, res: Response) => {
+    const userId = req.user?.user_id;
+
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    try {
+      const limit = parseInt(req.query.limit as string) || 50;
+      console.log("📜 Getting chat history for user:", userId, "limit:", limit);
+
+      const messages = await prisma.chatMessage.findMany({
+        where: { user_id: userId },
+        orderBy: { created_at: "desc" },
+        take: limit,
+      });
+
+      console.log("✅ Found", messages.length, "chat messages");
+
+      res.json({
+        success: true,
+        data: messages.reverse(), // Return in chronological order
+      });
+    } catch (error) {
+      console.error("💥 Chat history error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to get chat history",
+      });
+    }
+  }
+);
+
+// Clear chat history
+router.delete(
+  "/history",
+  authenticateToken,
+  async (req: AuthRequest, res: Response) => {
+    const userId = req.user?.user_id;
+
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    try {
+      console.log("🗑️ Clearing chat history for user:", userId);
+
+      await prisma.chatMessage.deleteMany({
+        where: { user_id: userId },
+      });
+
+      console.log("✅ Chat history cleared successfully");
+
+      res.json({
+        success: true,
+        message: "Chat history cleared successfully",
+      });
+    } catch (error) {
+      console.error("💥 Clear chat history error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to clear chat history",
+      });
+    }
+  }
+);
+
 // Health-based recommendation
 router.post(
   "/health-based-recommendation",

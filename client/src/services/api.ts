@@ -430,12 +430,14 @@ export const authAPI = {
 export const nutritionAPI = {
   analyzeMeal: async (
     imageBase64: string,
-    updateText: string | undefined,
+    updateText: string | undefined = undefined,
+    editedIngredients: any[] = [],
     language: string = "en"
   ): Promise<{ success: boolean; data?: MealAnalysisData; error?: string }> => {
     try {
       console.log("🔍 Making analyze meal API request...");
       console.log("📊 Base64 length:", imageBase64.length);
+      console.log("🥗 Edited ingredients count:", editedIngredients.length);
 
       // Clean base64 - remove data URL prefix if present
       let cleanBase64 = imageBase64;
@@ -453,6 +455,7 @@ export const nutritionAPI = {
         language: language === "he" ? "hebrew" : "english",
         date: new Date().toISOString().split("T")[0],
         updateText: updateText,
+        editedIngredients: editedIngredients,
       };
 
       // Create a custom timeout for this specific request
@@ -1306,7 +1309,8 @@ export const chatAPI = {
       return response.data;
     } catch (error: any) {
       console.error("💥 Chat history API error:", error);
-      throw error;
+      // Return empty history on error instead of throwing
+      return { success: true, data: [] };
     }
   },
 

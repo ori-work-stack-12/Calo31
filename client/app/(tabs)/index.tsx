@@ -50,8 +50,8 @@ I18nManager.allowRTL(true);
 
 const { width } = Dimensions.get("window");
 
-// Define emerald color constants to fix the undefined error
-const COLORS = {
+// Define color constants to fix the undefined error
+export const COLORS = {
   emerald: {
     50: "#ecfdf5",
     100: "#d1fae5",

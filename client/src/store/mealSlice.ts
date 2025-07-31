@@ -193,7 +193,12 @@ export const processImage = async (imageUri: string): Promise<string> => {
 export const analyzeMeal = createAsyncThunk(
   "meal/analyzeMeal",
   async (
-    params: { imageBase64: string; updateText?: string; language?: string },
+    params: { 
+      imageBase64: string; 
+      updateText?: string; 
+      language?: string;
+      editedIngredients?: any[];
+    },
     { rejectWithValue }
   ) => {
     try {
@@ -219,6 +224,7 @@ export const analyzeMeal = createAsyncThunk(
       const response = await nutritionAPI.analyzeMeal(
         cleanBase64,
         params.updateText,
+        params.editedIngredients || [],
         params.language || "en"
       );
       console.log("API response received:", response);

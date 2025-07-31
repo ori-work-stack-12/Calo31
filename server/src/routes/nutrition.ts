@@ -226,6 +226,7 @@ router.post("/analyze", async (req: AuthRequest, res) => {
       language = "english",
       date,
       updateText,
+      editedIngredients = [],
     } = validationResult.data;
 
     if (!imageBase64 || imageBase64.trim() === "") {
@@ -262,6 +263,7 @@ router.post("/analyze", async (req: AuthRequest, res) => {
 
     console.log("Processing meal analysis for user:", req.user.user_id);
     console.log("Image data length:", cleanBase64.length);
+    console.log("Edited ingredients:", editedIngredients.length);
 
     // Validate request data
     const analysisSchema = z.object({
@@ -269,6 +271,7 @@ router.post("/analyze", async (req: AuthRequest, res) => {
       language: z.string().default("english"),
       date: z.string().optional(),
       updateText: z.string().optional(),
+      editedIngredients: z.array(z.any()).default([]),
     });
 
     const validatedData = analysisSchema.parse({
@@ -276,6 +279,7 @@ router.post("/analyze", async (req: AuthRequest, res) => {
       language,
       date,
       updateText,
+      editedIngredients,
     });
 
     const result = await NutritionService.analyzeMeal(req.user.user_id, {
@@ -283,6 +287,7 @@ router.post("/analyze", async (req: AuthRequest, res) => {
       language: validatedData.language,
       date: validatedData.date || new Date().toISOString().split("T")[0],
       updateText: validatedData.updateText,
+      editedIngredients: validatedData.editedIngredients,
     });
     console.log("nutrition.ts in routes", result);
     console.log("Analysis completed successfully");
